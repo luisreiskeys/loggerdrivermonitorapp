@@ -9,14 +9,35 @@ type Evento = {
   longitude: number | null;
 };
 
+type Viagem = {
+  viagem: number;
+  eventos: Evento[];
+};
+
 export default function Home() {
-  const [events, setEvents] = useState<Evento[]>([]);
+  const [viagens, setViagens] = useState<Viagem[]>([]);
+  const [viagemAtual, setViagemAtual] = useState<number | null>(null);
+
+  const iniciarNovaViagem = () => {
+    const novaViagem = {
+      viagem: viagens.length + 1,
+      eventos: [],
+    };
+    setViagens((prev) => [...prev, novaViagem]);
+    setViagemAtual(novaViagem.viagem);
+  };
 
   const handleEvent = async (type: string) => {
+    if (viagemAtual === null) {
+      alert("Clique em 'Iniciar Nova Viagem' antes de registrar eventos.");
+      return;
+    }
+
     const timestamp = new Date().toLocaleString("pt-BR", {
       timeZone: "America/Sao_Paulo",
       hour12: false,
     });
+
     let latitude: number | null = null;
     let longitude: number | null = null;
 
@@ -36,28 +57,31 @@ export default function Home() {
       console.warn("Localização não obtida:", err);
     }
 
-    const newEvent: Evento = { type, timestamp, latitude, longitude };
-    setEvents((prev) => {
-      const updated = [...prev, newEvent];
-      console.log("Novo evento registrado:", newEvent);
-      return updated;
-    });
+    const novoEvento: Evento = { type, timestamp, latitude, longitude };
+
+    setViagens((prev) =>
+      prev.map((v) =>
+        v.viagem === viagemAtual
+          ? { ...v, eventos: [...v.eventos, novoEvento] }
+          : v
+      )
+    );
   };
 
   const downloadFile = () => {
-    if (events.length === 0) {
-      alert("Nenhum evento registrado ainda.");
+    if (viagens.length === 0) {
+      alert("Nenhuma viagem registrada.");
       return;
     }
 
-    const blob = new Blob([JSON.stringify(events, null, 2)], {
+    const blob = new Blob([JSON.stringify(viagens, null, 2)], {
       type: "application/json",
     });
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "eventos.json";
+    a.download = "relatorio_viagens.json";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -72,19 +96,32 @@ export default function Home() {
 
   return (
     <main className="min-h-screen p-4 bg-black text-white flex flex-col items-center justify-center gap-4">
-      <h1 className="text-xl font-bold">Registro Manual de Eventos</h1>
+      <h1 className="text-xl font-bold text-center">
+        Registro Manual de Eventos
+      </h1>
+
+      <button
+        onClick={iniciarNovaViagem}
+        className="w-full text-lg py-4 rounded-2xl bg-blue-600 active:bg-blue-800 transition-all"
+      >
+        ➕ Iniciar Nova Viagem
+      </button>
+
+      {viagemAtual && <p>Registrando: Viagem {viagemAtual}</p>}
+
       {buttons.map((btn) => (
         <button
           key={btn.type}
           onClick={() => handleEvent(btn.type)}
-          className="w-full text-lg py-6 rounded-2xl bg-red-600 active:bg-red-800 transition-all duration-100"
+          className="w-full text-lg py-6 rounded-2xl bg-red-600 active:bg-red-800 transition-all"
         >
           {btn.label}
         </button>
       ))}
+
       <button
         onClick={downloadFile}
-        className="w-full text-lg py-4 mt-4 rounded-2xl bg-green-600 hover:bg-green-700"
+        className="w-full text-lg py-4 mt-4 rounded-2xl bg-green-600 active:bg-green-800 transition-all"
       >
         📥 Exportar Relatório
       </button>
