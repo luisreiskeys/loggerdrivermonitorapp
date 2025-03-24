@@ -74,7 +74,7 @@ export default function Home() {
         <button
           key={btn.type}
           onClick={() => handleEvent(btn.type)}
-          className="w-full text-lg py-6 rounded-2xl bg-red-600 hover:bg-red-700"
+          className="w-full text-lg py-6 rounded-2xl bg-red-600 active:bg-red-800 transition-all duration-100"
         >
           {btn.label}
         </button>
