@@ -13,7 +13,10 @@ export default function Home() {
   const [events, setEvents] = useState<Evento[]>([]);
 
   const handleEvent = async (type: string) => {
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date().toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour12: false,
+    });
     let latitude: number | null = null;
     let longitude: number | null = null;
 
